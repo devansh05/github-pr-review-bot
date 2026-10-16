@@ -1,3 +1,5 @@
+import "dotenv/config"
+
 import express from "express";
 import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/client";
