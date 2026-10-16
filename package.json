@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A simple project to create a bot with bare minimum requirements to do a PR review for github using open Ai SDK",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
