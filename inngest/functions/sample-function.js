@@ -1,6 +1,6 @@
 import { Inngest } from "inngest";
 
-export const inngest = new Inngest({ id: "github-pr-review-bot" });
+export const inngest = new Inngest({ id: "sample-function" });
 
 export const sampleFunction = inngest.createFunction(
   // create an id and define triggers
