@@ -63,6 +63,10 @@ export const githubPullRequestReview = inngest.createFunction(
             commits: pullRequestObj.data.commits,
             errors: pullRequestObj.data.errors,
             cicd: pullRequestObj.data.cicd,
+            head: {
+              ref: pullRequestObj.data.head.ref,
+              sha: pullRequestObj.data.head.sha,
+            },
           };
           return resultObj;
         } catch (error) {
@@ -130,6 +134,33 @@ export const githubPullRequestReview = inngest.createFunction(
       };
     });
 
-    console.log("📋 llmReviewResponse", llmReviewResponse);
+    // Step 4 : Add the review comments to github pr commit
+  return await step.run("post-comment", async () => {
+      const { criticalFixes, suggestions, content } = llmReviewResponse.result;
+
+      const sections = [content];
+
+      if (criticalFixes?.length)
+        sections.push(
+          `**Critical Changes:**\n${criticalFixes.map((fix) => `- ${fix}`).join("\n")}`,
+        );
+
+      if (suggestions?.length)
+        sections.push(
+          `**Suggestions:**\n${suggestions.map((suggestion) => `- ${suggestion}`).join("\n")}`,
+        );
+
+      const comment = await octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number: pull_number,
+        body: sections.join("\n\n"),
+      });
+
+      return {
+        commentId: comment.data.id,
+        commentUrl: comment.data.html_url,
+      };
+    });
   }, // end of inngest function
 );
