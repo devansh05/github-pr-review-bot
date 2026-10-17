@@ -1,5 +1,7 @@
 import { Inngest } from "inngest";
 import { octokit } from "../../lib/github.js";
+import { run } from "@openai/agents";
+import { githubPullrequestReviewAgent } from "../../agents/github-pr-review-agent.js";
 
 export const inngest = new Inngest({ id: "github-pr-review-bot" });
 
@@ -110,5 +112,24 @@ export const githubPullRequestReview = inngest.createFunction(
 
     if (changes.length === 0)
       return { message: "There are no changes in this PR", skipped: true };
-  },
+
+    // Step 3 Run PR through Ai Agent for review
+    const llmReviewResponse = await step.run("fetch-llm-response", async () => {
+      const llmResponse = await run(
+        githubPullrequestReviewAgent,
+        `
+        Pull Request Information:
+        ${JSON.stringify(pullRequestInfo, null, 2)}
+        \n\n
+        Changes:
+        ${JSON.stringify(changes, null, 2)}
+      `,
+      );
+      return {
+        result: llmResponse.finalOutput,
+      };
+    });
+
+    console.log("📋 llmReviewResponse", llmReviewResponse);
+  }, // end of inngest function
 );
